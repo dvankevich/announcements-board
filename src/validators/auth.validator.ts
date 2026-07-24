@@ -70,6 +70,19 @@ registry.registerPath({
   path: "/api/auth/refresh",
   tags: ["Auth"],
   summary: "Refresh token pair",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            refreshToken: z.string().optional().openapi({
+              example: "b7a5d9c8a296022d69b264168629b27e7fa55ffe883d7b4653c9425fd1f3667b317637810c06ec7e",
+            }),
+          }),
+        },
+      },
+    },
+  },
   responses: {
     200: { description: "Tokens refreshed successfully" },
     401: { description: "Invalid or expired refresh token" },

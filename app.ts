@@ -22,7 +22,12 @@ app.use((_req: Request, res: Response) => {
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
+  const status = err.status || err.statusCode || 500;
+
+  // Логуємо тільки серверні помилки (5xx)
+  if (status >= 500) {
+    console.error(err);
+  }
 
   if (err.type === "entity.parse.failed") {
     return res.status(400).json({
@@ -33,8 +38,8 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     });
   }
 
-  if (err.status && err.status >= 400 && err.status < 500) {
-    return res.status(err.status).json({ error: err.message });
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ error: err.message });
   }
 
   if (err.code === "P2025") {

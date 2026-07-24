@@ -81,8 +81,8 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken =
-    req.cookies.refreshToken ||
-    (req.body as { refreshToken?: string }).refreshToken;
+    req.cookies?.refreshToken ||
+    req.body?.refreshToken;
 
   if (!refreshToken) {
     throw createHttpError(401, "Refresh token not provided");
@@ -114,8 +114,8 @@ export const refresh = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   const refreshToken =
-    req.cookies.refreshToken ||
-    (req.body as { refreshToken?: string }).refreshToken;
+    req.cookies?.refreshToken ||
+    req.body?.refreshToken;
 
   if (refreshToken) {
     await prisma.refreshToken.deleteMany({
