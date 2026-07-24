@@ -8,18 +8,19 @@ export const RegisterSchema = registry.register(
       .string()
       .regex(/^[a-zA-Z0-9_]+$/)
       .min(3)
-      .max(30),
-    email: z.email(),
-    password: z.string().min(8),
-    name: z.string().min(1).max(100),
+      .max(30)
+      .openapi({ example: "user01" }),
+    email: z.email().openapi({ example: "user01@example.com" }),
+    password: z.string().min(8).openapi({ example: "securepass123" }),
+    name: z.string().min(1).max(100).openapi({ example: "FirstName LastName" }),
   }),
 );
 
 export const LoginSchema = registry.register(
   "Login",
   z.object({
-    username: z.string(),
-    password: z.string(),
+    username: z.string().openapi({ example: "user01" }),
+    password: z.string().openapi({ example: "securepass123" }),
   }),
 );
 
