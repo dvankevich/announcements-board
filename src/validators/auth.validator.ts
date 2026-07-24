@@ -24,6 +24,17 @@ export const LoginSchema = registry.register(
   }),
 );
 
+export const UserSchema = registry.register(
+  "User",
+  z.object({
+    id: z.number().int().positive().openapi({ example: 1 }),
+    username: z.string().openapi({ example: "user01" }),
+    email: z.email().openapi({ example: "user01@example.com" }),
+    name: z.string().openapi({ example: "FirstName LastName" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T12:00:00.000Z" }),
+  }),
+);
+
 export type RegisterBody = z.infer<typeof RegisterSchema>;
 export type LoginBody = z.infer<typeof LoginSchema>;
 
@@ -106,7 +117,12 @@ registry.registerPath({
   summary: "Get current user profile",
   security: [{ bearerAuth: [] }],
   responses: {
-    200: { description: "Current user profile" },
+    200: {
+      description: "Current user profile",
+      content: {
+        "application/json": { schema: UserSchema },
+      },
+    },
     401: { description: "Authentication required" },
   },
 });
