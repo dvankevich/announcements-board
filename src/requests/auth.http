@@ -33,3 +33,7 @@ Content-Type: application/json
 {
   "refreshToken": "вставте refresh token з відповіді логіну"
 }
+
+### Профіль поточного користувача
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzg0ODkxMzI0LCJleHAiOjE3ODQ4OTIyMjR9.GzWaC40DVK3LQPqhNAyrt_xnwIFL_2YVuPrUUvHM9FQ

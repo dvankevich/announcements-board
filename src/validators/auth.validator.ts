@@ -98,3 +98,15 @@ registry.registerPath({
     204: { description: "Logged out successfully" },
   },
 });
+
+registry.registerPath({
+  method: "get",
+  path: "/api/auth/me",
+  tags: ["Auth"],
+  summary: "Get current user profile",
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: { description: "Current user profile" },
+    401: { description: "Authentication required" },
+  },
+});
