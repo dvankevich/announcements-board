@@ -1,0 +1,23 @@
+### Get all announcements (default: page 1, newest first)
+GET http://localhost:3000/api/announcements
+
+### Get announcements - page 2
+GET http://localhost:3000/api/announcements?page=2
+
+### Search by title
+GET http://localhost:3000/api/announcements?search=laptop
+
+### Sort by oldest first
+GET http://localhost:3000/api/announcements?sort=oldest
+
+### Search + pagination
+GET http://localhost:3000/api/announcements?search=sale&page=1
+
+### Search + sort + pagination
+GET http://localhost:3000/api/announcements?search=asus&sort=oldest&page=1
+
+### Empty search (should return all)
+GET http://localhost:3000/api/announcements?search=
+
+### Invalid page (should return 400)
+GET http://localhost:3000/api/announcements?page=0
