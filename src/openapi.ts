@@ -21,7 +21,7 @@ export function generateOpenApiDocument() {
   return generator.generateDocument({
     openapi: "3.0.0",
     info: {
-      title: "prisma-auth-boilerplate",
+      title: "announcements board API",
       version: "1.0.0",
       description:
         "REST API with auth",

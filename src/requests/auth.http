@@ -3,7 +3,7 @@ POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "chef_olena",
+  "username": "olena",
   "email": "olena@example.com",
   "password": "securepass123",
   "name": "Олена Кравец"
@@ -14,7 +14,7 @@ POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "chef_olena",
+  "username": "olena",
   "password": "securepass123"
 }
 
@@ -36,4 +36,4 @@ Content-Type: application/json
 
 ### Профіль поточного користувача
 GET http://localhost:3000/api/auth/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzg0ODkxMzI0LCJleHAiOjE3ODQ4OTIyMjR9.GzWaC40DVK3LQPqhNAyrt_xnwIFL_2YVuPrUUvHM9FQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzg1MDYxNDYyLCJleHAiOjE3ODUwNjIzNjJ9.Ou2F5QtjjzTS00UOgN8YHpgv4uLFfsHYJxJPwawo9e4
