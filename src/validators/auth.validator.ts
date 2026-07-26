@@ -31,7 +31,7 @@ export const UserSchema = registry.register(
     username: z.string().openapi({ example: "user01" }),
     email: z.email().openapi({ example: "user01@example.com" }),
     name: z.string().openapi({ example: "FirstName LastName" }),
-    createdAt: z.string().datetime().openapi({ example: "2025-01-10T12:00:00.000Z" }),
+    createdAt: z.iso.datetime().openapi({ example: "2025-01-10T12:00:00.000Z" }),
   }),
 );
 
