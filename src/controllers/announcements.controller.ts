@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import createHttpError from "http-errors";
 import prisma from "../../prisma/client.ts";
-import type { GetAnnouncementsQuery, AnnouncementIdParam } from "../validators/announcements.validator.ts";
+import type {
+  GetAnnouncementsQuery,
+  AnnouncementIdParam,
+  CreateAnnouncementBody,
+} from "../validators/announcements.validator.ts";
 
 export const getAnnouncements = async (
   _req: Request,
@@ -84,4 +88,34 @@ export const getAnnouncementById = async (
   }
 
   res.status(200).json(announcement);
+};
+
+export const createAnnouncement = async (
+  req: Request<{}, {}, CreateAnnouncementBody>,
+  res: Response,
+) => {
+  const userId = Number(req.user!.sub);
+  const { title, description, price, category } = req.body;
+
+  const announcement = await prisma.announcement.create({
+    data: {
+      title,
+      description,
+      price,
+      category,
+      userId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  res.status(201).json(announcement);
 };

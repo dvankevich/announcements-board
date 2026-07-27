@@ -30,3 +30,27 @@ GET http://localhost:3000/api/announcements/9999
 
 ### Get announcement by ID (invalid id)
 GET http://localhost:3000/api/announcements/abc
+
+### Create announcement (replace <token> with real access token)
+POST http://localhost:3000/api/announcements
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Selling a mountain bike",
+  "description": "Mountain bike, 21 speeds, good condition",
+  "price": 8000,
+  "category": "sale"
+}
+
+### Create announcement - validation error (title too short)
+POST http://localhost:3000/api/announcements
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Bike",
+  "description": "Short",
+  "price": -100,
+  "category": "invalid"
+}

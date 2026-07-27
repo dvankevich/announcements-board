@@ -96,6 +96,30 @@ export const AnnouncementIdParamSchema = registry.register(
 
 export type AnnouncementIdParam = z.infer<typeof AnnouncementIdParamSchema>;
 
+export const CreateAnnouncementSchema = registry.register(
+  "CreateAnnouncement",
+  z.object({
+    title: z
+      .string()
+      .min(5)
+      .max(50)
+      .openapi({ example: "Selling a mountain bike" }),
+    description: z
+      .string()
+      .min(10)
+      .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
+    price: z
+      .number()
+      .positive()
+      .openapi({ example: 8000 }),
+    category: z
+      .enum(["sale", "service", "job", "other"])
+      .openapi({ example: "sale" }),
+  }),
+);
+
+export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementSchema>;
+
 // ---------- Paths ----------
 
 registry.registerPath({
@@ -137,5 +161,32 @@ registry.registerPath({
     },
     400: { description: "Invalid announcement ID" },
     404: { description: "Announcement not found" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/announcements",
+  tags: ["Announcements"],
+  summary: "Create a new announcement",
+  description:
+    "Protected route. Creates an announcement. Author is taken from the access token.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": { schema: CreateAnnouncementSchema },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Announcement created successfully",
+      content: {
+        "application/json": { schema: AnnouncementSchema },
+      },
+    },
+    401: { description: "Authentication required" },
+    422: { description: "Validation error" },
   },
 });

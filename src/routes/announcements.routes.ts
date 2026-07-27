@@ -2,11 +2,14 @@ import { Router } from "express";
 import {
   getAnnouncements,
   getAnnouncementById,
+  createAnnouncement,
 } from "../controllers/announcements.controller.ts";
-import { validateQuery, validateParams } from "../middleware/validate.ts";
+import { validateQuery, validateParams, validateBody } from "../middleware/validate.ts";
+import authenticate  from "../middleware/authenticate.ts";
 import {
   GetAnnouncementsQuerySchema,
   AnnouncementIdParamSchema,
+  CreateAnnouncementSchema,
 } from "../validators/announcements.validator.ts";
 
 const router = Router();
@@ -21,6 +24,13 @@ router.get(
   "/:id",
   validateParams(AnnouncementIdParamSchema),
   getAnnouncementById,
+);
+
+router.post(
+  "/",
+  authenticate,
+  validateBody(CreateAnnouncementSchema),
+  createAnnouncement,
 );
 
 export default router;
