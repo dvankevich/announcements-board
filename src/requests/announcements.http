@@ -21,3 +21,12 @@ GET http://localhost:3000/api/announcements?search=
 
 ### Invalid page (should return 400)
 GET http://localhost:3000/api/announcements?page=0
+
+### Get announcement by ID
+GET http://localhost:3000/api/announcements/1
+
+### Get announcement by ID (not found)
+GET http://localhost:3000/api/announcements/9999
+
+### Get announcement by ID (invalid id)
+GET http://localhost:3000/api/announcements/abc

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
+import createHttpError from "http-errors";
 import prisma from "../../prisma/client.ts";
-import type { GetAnnouncementsQuery } from "../validators/announcements.validator.ts";
+import type { GetAnnouncementsQuery, AnnouncementIdParam } from "../validators/announcements.validator.ts";
 
 export const getAnnouncements = async (
   _req: Request,
@@ -14,11 +15,11 @@ export const getAnnouncements = async (
   const where =
     search && search.trim()
       ? {
-          title: {
-            contains: search.trim(),
-            mode: "insensitive" as const,
-          },
-        }
+        title: {
+          contains: search.trim(),
+          mode: "insensitive" as const,
+        },
+      }
       : {};
 
   const orderBy = {
@@ -56,4 +57,31 @@ export const getAnnouncements = async (
       perPage,
     },
   });
+};
+
+export const getAnnouncementById = async (
+  req: Request<AnnouncementIdParam>,
+  res: Response,
+) => {
+  const { id } = req.params;
+
+  const announcement = await prisma.announcement.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!announcement) {
+    throw createHttpError(404, "Announcement not found");
+  }
+
+  res.status(200).json(announcement);
 };

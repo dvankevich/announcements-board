@@ -83,6 +83,19 @@ export const GetAnnouncementsQuerySchema = registry.register(
 
 export type GetAnnouncementsQuery = z.infer<typeof GetAnnouncementsQuerySchema>;
 
+export const AnnouncementIdParamSchema = registry.register(
+  "AnnouncementIdParam",
+  z.object({
+    id: z.coerce
+      .number()
+      .int()
+      .positive()
+      .openapi({ example: 5, description: "Announcement ID" }),
+  }),
+);
+
+export type AnnouncementIdParam = z.infer<typeof AnnouncementIdParamSchema>;
+
 // ---------- Paths ----------
 
 registry.registerPath({
@@ -103,5 +116,26 @@ registry.registerPath({
       },
     },
     400: { description: "Invalid query parameters" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/announcements/{id}",
+  tags: ["Announcements"],
+  summary: "Get announcement by ID",
+  description: "Public route. Returns a single announcement with author data.",
+  request: {
+    params: AnnouncementIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: "Announcement found",
+      content: {
+        "application/json": { schema: AnnouncementSchema },
+      },
+    },
+    400: { description: "Invalid announcement ID" },
+    404: { description: "Announcement not found" },
   },
 });
