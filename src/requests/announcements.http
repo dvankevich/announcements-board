@@ -54,3 +54,29 @@ Content-Type: application/json
   "price": -100,
   "category": "invalid"
 }
+
+### Update announcement (replace <token> and id)
+PATCH http://localhost:3000/api/announcements/1
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Selling a mountain bike urgently",
+  "price": 6500
+}
+
+### Update announcement - empty body (should return 422)
+PATCH http://localhost:3000/api/announcements/1
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{}
+
+### Update announcement - access denied (use another user's token)
+PATCH http://localhost:3000/api/announcements/1
+Authorization: Bearer <another_user_token>
+Content-Type: application/json
+
+{
+  "price": 5000
+}

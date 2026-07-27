@@ -5,6 +5,7 @@ import type {
   GetAnnouncementsQuery,
   AnnouncementIdParam,
   CreateAnnouncementBody,
+  UpdateAnnouncementBody,
 } from "../validators/announcements.validator.ts";
 
 export const getAnnouncements = async (
@@ -118,4 +119,41 @@ export const createAnnouncement = async (
   });
 
   res.status(201).json(announcement);
+};
+
+export const updateAnnouncement = async (
+  req: Request<AnnouncementIdParam, {}, UpdateAnnouncementBody>,
+  res: Response,
+) => {
+  const { id } = req.params;
+  const userId = Number(req.user!.sub);
+
+  const announcement = await prisma.announcement.findUnique({
+    where: { id },
+  });
+
+  if (!announcement) {
+    throw createHttpError(404, "Announcement not found");
+  }
+
+  if (announcement.userId !== userId) {
+    throw createHttpError(403, "Access denied");
+  }
+
+  const updated = await prisma.announcement.update({
+    where: { id },
+    data: req.body,
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  res.status(200).json(updated);
 };

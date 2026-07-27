@@ -120,6 +120,38 @@ export const CreateAnnouncementSchema = registry.register(
 
 export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementSchema>;
 
+export const UpdateAnnouncementSchema = registry.register(
+  "UpdateAnnouncement",
+  z
+    .object({
+      title: z
+        .string()
+        .min(5)
+        .max(50)
+        .optional()
+        .openapi({ example: "Selling a mountain bike urgently" }),
+      description: z
+        .string()
+        .min(10)
+        .optional()
+        .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
+      price: z
+        .number()
+        .positive()
+        .optional()
+        .openapi({ example: 6500 }),
+      category: z
+        .enum(["sale", "service", "job", "other"])
+        .optional()
+        .openapi({ example: "sale" }),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field must be provided",
+    }),
+);
+
+export type UpdateAnnouncementBody = z.infer<typeof UpdateAnnouncementSchema>;
+
 // ---------- Paths ----------
 
 registry.registerPath({
@@ -187,6 +219,37 @@ registry.registerPath({
       },
     },
     401: { description: "Authentication required" },
+    422: { description: "Validation error" },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/announcements/{id}",
+  tags: ["Announcements"],
+  summary: "Update announcement",
+  description:
+    "Protected route. Partially updates an announcement. Only the owner can update it.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: AnnouncementIdParamSchema,
+    body: {
+      content: {
+        "application/json": { schema: UpdateAnnouncementSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Announcement updated successfully",
+      content: {
+        "application/json": { schema: AnnouncementSchema },
+      },
+    },
+    400: { description: "Invalid announcement ID" },
+    401: { description: "Authentication required" },
+    403: { description: "Access denied" },
+    404: { description: "Announcement not found" },
     422: { description: "Validation error" },
   },
 });
