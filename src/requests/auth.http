@@ -1,16 +1,19 @@
-### Реєстрація нового користувача
-POST http://localhost:3000/api/auth/register
+@baseUrl = http://localhost:3000
+
+### Register new user
+POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
   "username": "olena",
   "email": "olena@example.com",
   "password": "securepass123",
-  "name": "Олена Кравец"
+  "name": "Olena Kravets"
 }
 
-### Логін
-POST http://localhost:3000/api/auth/login
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -18,22 +21,31 @@ Content-Type: application/json
   "password": "securepass123"
 }
 
-### Оновлення токенів
-POST http://localhost:3000/api/auth/refresh
+### Збереження токенів після логіну
+@accessToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+
+### Refresh tokens
+# @name refresh
+POST {{baseUrl}}/api/auth/refresh
 Content-Type: application/json
 
 {
-  "refreshToken": "вставте refresh token з відповіді логіну"
+  "refreshToken": "{{refreshToken}}"
 }
 
-### Вихід
-POST http://localhost:3000/api/auth/logout
+### Оновлення токенів після refresh
+@accessToken = {{refresh.response.body.accessToken}}
+@refreshToken = {{refresh.response.body.refreshToken}}
+
+### Logout
+POST {{baseUrl}}/api/auth/logout
 Content-Type: application/json
 
 {
-  "refreshToken": "вставте refresh token з відповіді логіну"
+  "refreshToken": "{{refreshToken}}"
 }
 
-### Профіль поточного користувача
-GET http://localhost:3000/api/auth/me
-Authorization: Bearer token
+### Current user profile
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{accessToken}}

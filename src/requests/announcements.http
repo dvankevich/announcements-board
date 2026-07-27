@@ -1,39 +1,72 @@
-### Get all announcements (default: page 1, newest first)
-GET http://localhost:3000/api/announcements
+@baseUrl = http://localhost:3000
+
+### ====================== AUTH ======================
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "olena",
+  "password": "securepass123"
+}
+
+### Save tokens after login
+@accessToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+
+### Refresh tokens
+# @name refresh
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Update tokens after refresh
+@accessToken = {{refresh.response.body.accessToken}}
+@refreshToken = {{refresh.response.body.refreshToken}}
+
+### ====================== ANNOUNCEMENTS ======================
+
+### Get all announcements (default)
+GET {{baseUrl}}/api/announcements
 
 ### Get announcements - page 2
-GET http://localhost:3000/api/announcements?page=2
+GET {{baseUrl}}/api/announcements?page=2
 
 ### Search by title
-GET http://localhost:3000/api/announcements?search=laptop
+GET {{baseUrl}}/api/announcements?search=laptop
 
 ### Sort by oldest first
-GET http://localhost:3000/api/announcements?sort=oldest
+GET {{baseUrl}}/api/announcements?sort=oldest
 
 ### Search + pagination
-GET http://localhost:3000/api/announcements?search=sale&page=1
+GET {{baseUrl}}/api/announcements?search=sale&page=1
 
 ### Search + sort + pagination
-GET http://localhost:3000/api/announcements?search=asus&sort=oldest&page=1
+GET {{baseUrl}}/api/announcements?search=asus&sort=oldest&page=1
 
-### Empty search (should return all)
-GET http://localhost:3000/api/announcements?search=
+### Empty search
+GET {{baseUrl}}/api/announcements?search=
 
-### Invalid page (should return 400)
-GET http://localhost:3000/api/announcements?page=0
+### Invalid page
+GET {{baseUrl}}/api/announcements?page=0
 
 ### Get announcement by ID
-GET http://localhost:3000/api/announcements/1
+GET {{baseUrl}}/api/announcements/1
 
 ### Get announcement by ID (not found)
-GET http://localhost:3000/api/announcements/9999
+GET {{baseUrl}}/api/announcements/9999
 
 ### Get announcement by ID (invalid id)
-GET http://localhost:3000/api/announcements/abc
+GET {{baseUrl}}/api/announcements/abc
 
-### Create announcement (replace <token> with real access token)
-POST http://localhost:3000/api/announcements
-Authorization: Bearer <token>
+### Create announcement
+POST {{baseUrl}}/api/announcements
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -43,9 +76,9 @@ Content-Type: application/json
   "category": "sale"
 }
 
-### Create announcement - validation error (title too short)
-POST http://localhost:3000/api/announcements
-Authorization: Bearer <token>
+### Create announcement - validation error
+POST {{baseUrl}}/api/announcements
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -55,9 +88,9 @@ Content-Type: application/json
   "category": "invalid"
 }
 
-### Update announcement (replace <token> and id)
-PATCH http://localhost:3000/api/announcements/1
-Authorization: Bearer <token>
+### Update announcement
+PATCH {{baseUrl}}/api/announcements/1
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -65,30 +98,17 @@ Content-Type: application/json
   "price": 6500
 }
 
-### Update announcement - empty body (should return 422)
-PATCH http://localhost:3000/api/announcements/1
-Authorization: Bearer <token>
+### Update announcement - empty body
+PATCH {{baseUrl}}/api/announcements/1
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {}
 
-### Update announcement - access denied (use another user's token)
-PATCH http://localhost:3000/api/announcements/1
-Authorization: Bearer <another_user_token>
-Content-Type: application/json
-
-{
-  "price": 5000
-}
-
 ### Delete announcement
-DELETE http://localhost:3000/api/announcements/1
-Authorization: Bearer <token>
+DELETE {{baseUrl}}/api/announcements/1
+Authorization: Bearer {{accessToken}}
 
 ### Delete announcement - not found
-DELETE http://localhost:3000/api/announcements/9999
-Authorization: Bearer <token>
-
-### Delete announcement - access denied
-DELETE http://localhost:3000/api/announcements/1
-Authorization: Bearer <another_user_token>
+DELETE {{baseUrl}}/api/announcements/9999
+Authorization: Bearer {{accessToken}}
