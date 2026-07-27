@@ -4,6 +4,7 @@ import {
   getAnnouncementById,
   createAnnouncement,
   updateAnnouncement,
+  deleteAnnouncement,
 } from "../controllers/announcements.controller.ts";
 import { validateQuery, validateParams, validateBody } from "../middleware/validate.ts";
 import authenticate  from "../middleware/authenticate.ts";
@@ -42,5 +43,13 @@ router.patch(
   validateBody(UpdateAnnouncementSchema),
   updateAnnouncement,
 );
+
+router.delete(
+  "/:id",
+  authenticate,
+  validateParams(AnnouncementIdParamSchema),
+  deleteAnnouncement,
+);
+
 
 export default router;

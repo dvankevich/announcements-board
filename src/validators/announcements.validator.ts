@@ -253,3 +253,23 @@ registry.registerPath({
     422: { description: "Validation error" },
   },
 });
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/announcements/{id}",
+  tags: ["Announcements"],
+  summary: "Delete announcement",
+  description:
+    "Protected route. Deletes an announcement. Only the owner can delete it.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: AnnouncementIdParamSchema,
+  },
+  responses: {
+    204: { description: "Announcement deleted successfully" },
+    400: { description: "Invalid announcement ID" },
+    401: { description: "Authentication required" },
+    403: { description: "Access denied" },
+    404: { description: "Announcement not found" },
+  },
+});

@@ -80,3 +80,15 @@ Content-Type: application/json
 {
   "price": 5000
 }
+
+### Delete announcement
+DELETE http://localhost:3000/api/announcements/1
+Authorization: Bearer <token>
+
+### Delete announcement - not found
+DELETE http://localhost:3000/api/announcements/9999
+Authorization: Bearer <token>
+
+### Delete announcement - access denied
+DELETE http://localhost:3000/api/announcements/1
+Authorization: Bearer <another_user_token>
