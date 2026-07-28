@@ -56,7 +56,7 @@ GET {{baseUrl}}/api/announcements?search=
 GET {{baseUrl}}/api/announcements?page=0
 
 ### Get announcement by ID
-GET {{baseUrl}}/api/announcements/1
+GET {{baseUrl}}/api/announcements/2
 
 ### Get announcement by ID (not found)
 GET {{baseUrl}}/api/announcements/9999

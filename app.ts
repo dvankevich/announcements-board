@@ -1,5 +1,6 @@
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import cors from 'cors'
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 
@@ -9,6 +10,26 @@ import announcementsRouter from "./src/routes/announcements.routes.ts";
 import { generateOpenApiDocument } from "./src/openapi.ts";
 
 const app = express();
+
+const allowedOrigins =
+  process.env.ALLOWED_ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) || [];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false); // ← ось так правильно
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 app.use(express.json());
 app.use(cookieParser());
