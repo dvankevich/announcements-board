@@ -1,5 +1,6 @@
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import cors from 'cors'
 import helmet from 'helmet'
 import swaggerUi from "swagger-ui-express";
@@ -17,8 +18,15 @@ const allowedOrigins =
     .map((origin) => origin.trim())
     .filter(Boolean) || [];
 
-// console.log("ALLOWED_ORIGINS from env:", process.env.ALLOWED_ORIGINS);
-// console.log("Parsed allowedOrigins:", allowedOrigins);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: "Too many requests, please try again later",
+  },
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+});
 
 app.use(
   cors({
@@ -48,7 +56,7 @@ app.use(cookieParser());
 const openApiDocument = generateOpenApiDocument();
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-app.use("/api/auth", authRouter);
+app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/announcements", announcementsRouter);
 
 // 404 Not Found handler - must be after all routes
