@@ -16,6 +16,9 @@ const allowedOrigins =
     .map((origin) => origin.trim())
     .filter(Boolean) || [];
 
+// console.log("ALLOWED_ORIGINS from env:", process.env.ALLOWED_ORIGINS);
+// console.log("Parsed allowedOrigins:", allowedOrigins);
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -28,6 +31,8 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 86400
   }),
 );
 

@@ -1,0 +1,21 @@
+### CORS Preflight - Allowed Origin (should return 204 + CORS headers)
+OPTIONS http://localhost:3000/api/announcements
+Origin: http://localhost:5173
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type, Authorization
+
+### CORS Preflight - Allowed Origin on /:id
+OPTIONS http://localhost:3000/api/announcements/2
+Origin: http://localhost:5173
+Access-Control-Request-Method: GET
+
+### CORS Preflight - Blocked Origin (should NOT have Access-Control-Allow-Origin)
+OPTIONS http://localhost:3000/api/announcements
+Origin: https://evil.com
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type, Authorization
+
+### CORS Preflight - Blocked Origin (another example)
+OPTIONS http://localhost:3000/api/announcements/2
+Origin: https://malicious-site.com
+Access-Control-Request-Method: GET
