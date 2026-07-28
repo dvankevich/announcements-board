@@ -1,6 +1,7 @@
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import cors from 'cors'
+import helmet from 'helmet'
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 
@@ -33,6 +34,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
     exposedHeaders: ['X-Total-Count'],
     maxAge: 86400
+  }),
+);
+
+app.use(
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
   }),
 );
 
