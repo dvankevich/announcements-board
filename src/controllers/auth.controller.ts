@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import prisma from "../../prisma/client.ts";
 import { createTokens, setRefreshTokenCookie } from "../services/auth.ts";
 import type { RegisterBody, LoginBody } from "../validators/auth.validator.ts";
+import logger from "../logger.ts";
 
 export const register = async (
   req: Request<{}, {}, RegisterBody>,
@@ -34,6 +35,11 @@ export const register = async (
 
   const tokens = await createTokens(user.id);
   setRefreshTokenCookie(res, tokens.refreshToken);
+
+  logger.info(
+    { userId: user.id, username: user.username },
+    "User registered",
+  );
 
   res.status(201).json({
     accessToken: tokens.accessToken,
@@ -67,6 +73,11 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
   const tokens = await createTokens(user.id);
   setRefreshTokenCookie(res, tokens.refreshToken);
 
+  logger.info(
+    { userId: user.id, username: user.username },
+    "User logged in",
+  );
+
   res.status(200).json({
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
@@ -81,8 +92,7 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken =
-    req.cookies?.refreshToken ||
-    req.body?.refreshToken;
+    req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!refreshToken) {
     throw createHttpError(401, "Refresh token not provided");
@@ -106,6 +116,11 @@ export const refresh = async (req: Request, res: Response) => {
   const tokens = await createTokens(storedToken.userId);
   setRefreshTokenCookie(res, tokens.refreshToken);
 
+  logger.info(
+    { userId: storedToken.userId },
+    "Tokens refreshed",
+  );
+
   res.status(200).json({
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
@@ -114,8 +129,7 @@ export const refresh = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   const refreshToken =
-    req.cookies?.refreshToken ||
-    req.body?.refreshToken;
+    req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (refreshToken) {
     await prisma.refreshToken.deleteMany({
@@ -128,6 +142,8 @@ export const logout = async (req: Request, res: Response) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
+
+  logger.info("User logged out");
 
   res.status(204).end();
 };
@@ -152,4 +168,3 @@ export const me = async (req: Request, res: Response) => {
 
   res.status(200).json(user);
 };
-

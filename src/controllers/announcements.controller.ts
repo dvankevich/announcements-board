@@ -7,24 +7,24 @@ import type {
   CreateAnnouncementBody,
   UpdateAnnouncementBody,
 } from "../validators/announcements.validator.ts";
+import logger from "../logger.ts";
 
 export const getAnnouncements = async (
   _req: Request,
   res: Response<any, { query: GetAnnouncementsQuery }>,
 ) => {
   const { page, search, sort } = res.locals.query;
-
   const perPage = 10;
   const skip = (page - 1) * perPage;
 
   const where =
     search && search.trim()
       ? {
-        title: {
-          contains: search.trim(),
-          mode: "insensitive" as const,
-        },
-      }
+          title: {
+            contains: search.trim(),
+            mode: "insensitive" as const,
+          },
+        }
       : {};
 
   const orderBy = {
@@ -118,6 +118,16 @@ export const createAnnouncement = async (
     },
   });
 
+  logger.info(
+    {
+      announcementId: announcement.id,
+      userId,
+      title: announcement.title,
+      category: announcement.category,
+    },
+    "Announcement created",
+  );
+
   res.status(201).json(announcement);
 };
 
@@ -155,6 +165,11 @@ export const updateAnnouncement = async (
     },
   });
 
+  logger.info(
+    { announcementId: id, userId },
+    "Announcement updated",
+  );
+
   res.status(200).json(updated);
 };
 
@@ -180,6 +195,11 @@ export const deleteAnnouncement = async (
   await prisma.announcement.delete({
     where: { id },
   });
+
+  logger.info(
+    { announcementId: id, userId },
+    "Announcement deleted",
+  );
 
   res.status(204).end();
 };

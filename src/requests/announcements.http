@@ -89,7 +89,7 @@ Content-Type: application/json
 }
 
 ### Update announcement
-PATCH {{baseUrl}}/api/announcements/1
+PATCH {{baseUrl}}/api/announcements/11
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
@@ -99,7 +99,7 @@ Content-Type: application/json
 }
 
 ### Update announcement - empty body
-PATCH {{baseUrl}}/api/announcements/1
+PATCH {{baseUrl}}/api/announcements/11
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
