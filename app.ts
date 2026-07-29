@@ -1,17 +1,14 @@
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
-import cors from 'cors'
-import helmet from 'helmet'
+import cors from "cors";
+import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
-import { pinoHttp } from 'pino-http'
-import logger from "./src/logger.ts"
-
-
+import { pinoHttp } from "pino-http";
+import logger from "./src/logger.ts";
 import authRouter from "./src/routes/auth.routes.ts";
 import announcementsRouter from "./src/routes/announcements.routes.ts";
-
 import { generateOpenApiDocument } from "./src/openapi.ts";
 
 const app = express();
@@ -27,7 +24,7 @@ const authLimiter = rateLimit({
   message: {
     error: "Too many requests, please try again later",
   },
-  standardHeaders: 'draft-8',
+  standardHeaders: "draft-8",
   legacyHeaders: false,
 });
 
@@ -37,20 +34,22 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, false); // ← ось так правильно
+        logger.debug({ origin }, "CORS blocked origin");
+        callback(null, false);
       }
     },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ['X-Total-Count'],
-    maxAge: 86400
+    exposedHeaders: ["X-Total-Count"],
+    maxAge: 86400,
   }),
 );
 
 app.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+    contentSecurityPolicy:
+      process.env.NODE_ENV === "production" ? undefined : false,
   }),
 );
 
@@ -81,24 +80,47 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
 const openApiDocument = generateOpenApiDocument();
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/announcements", announcementsRouter);
 
-// 404 Not Found handler - must be after all routes
-app.use((_req: Request, res: Response) => {
+// 404 Not Found handler
+app.use((req: Request, res: Response) => {
+  logger.debug({ method: req.method, url: req.url }, "Route not found");
   res.status(404).json({ error: "Not found" });
 });
 
 // Error handling middleware
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
 
-  // Логуємо тільки серверні помилки (5xx)
   if (status >= 500) {
-    console.error(err);
+    logger.error(
+      {
+        err,
+        req: {
+          id: req.id,
+          method: req.method,
+          url: req.url,
+        },
+      },
+      err.message || "Internal server error",
+    );
+  } else {
+    logger.warn(
+      {
+        err: { message: err.message, status, code: err.code },
+        req: {
+          id: req.id,
+          method: req.method,
+          url: req.url,
+        },
+      },
+      err.message,
+    );
   }
 
   if (err.type === "entity.parse.failed") {
@@ -132,5 +154,17 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+});
+
+// Critical process errors
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err }, "Uncaught exception");
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.fatal({ err: reason }, "Unhandled rejection");
+  process.exit(1);
 });

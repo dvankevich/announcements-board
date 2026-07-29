@@ -12,6 +12,8 @@ export const register = async (
 ) => {
   const { username, email, password, name } = req.body;
 
+  logger.debug({ username, email }, "Register attempt");
+
   const existingUser = await prisma.user.findFirst({
     where: {
       OR: [{ username }, { email }],
@@ -19,6 +21,7 @@ export const register = async (
   });
 
   if (existingUser) {
+    logger.debug({ username, email }, "Register failed: user already exists");
     throw createHttpError(409, "Username or email already taken");
   }
 
@@ -56,17 +59,21 @@ export const register = async (
 export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
   const { username, password } = req.body;
 
+  logger.debug({ username }, "Login attempt");
+
   const user = await prisma.user.findUnique({
     where: { username },
   });
 
   if (!user) {
+    logger.debug({ username }, "Login failed: user not found");
     throw createHttpError(401, "Invalid credentials");
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
+    logger.debug({ userId: user.id, username }, "Login failed: invalid password");
     throw createHttpError(401, "Invalid credentials");
   }
 
@@ -94,7 +101,10 @@ export const refresh = async (req: Request, res: Response) => {
   const refreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
 
+  logger.debug("Refresh token attempt");
+
   if (!refreshToken) {
+    logger.debug("Refresh failed: token not provided");
     throw createHttpError(401, "Refresh token not provided");
   }
 
@@ -103,11 +113,13 @@ export const refresh = async (req: Request, res: Response) => {
   });
 
   if (!storedToken) {
+    logger.debug("Refresh failed: invalid token");
     throw createHttpError(401, "Invalid refresh token");
   }
 
   if (new Date() > storedToken.expiresAt) {
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+    logger.debug({ userId: storedToken.userId }, "Refresh failed: token expired");
     throw createHttpError(401, "Refresh token expired");
   }
 
@@ -131,6 +143,8 @@ export const logout = async (req: Request, res: Response) => {
   const refreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
 
+  logger.debug("Logout attempt");
+
   if (refreshToken) {
     await prisma.refreshToken.deleteMany({
       where: { token: refreshToken },
@@ -151,6 +165,8 @@ export const logout = async (req: Request, res: Response) => {
 export const me = async (req: Request, res: Response) => {
   const userId = Number(req.user!.sub);
 
+  logger.debug({ userId }, "Get current user profile");
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -163,6 +179,7 @@ export const me = async (req: Request, res: Response) => {
   });
 
   if (!user) {
+    logger.debug({ userId }, "Get profile failed: user not found");
     throw createHttpError(401, "User not found");
   }
 

@@ -14,6 +14,9 @@ export const getAnnouncements = async (
   res: Response<any, { query: GetAnnouncementsQuery }>,
 ) => {
   const { page, search, sort } = res.locals.query;
+
+  logger.debug({ page, search, sort }, "Get announcements list");
+
   const perPage = 10;
   const skip = (page - 1) * perPage;
 
@@ -53,6 +56,8 @@ export const getAnnouncements = async (
 
   const totalPages = Math.ceil(total / perPage);
 
+  logger.debug({ total, page, totalPages }, "Announcements list fetched");
+
   res.status(200).json({
     data,
     pagination: {
@@ -70,6 +75,8 @@ export const getAnnouncementById = async (
 ) => {
   const { id } = req.params;
 
+  logger.debug({ announcementId: id }, "Get announcement by id");
+
   const announcement = await prisma.announcement.findUnique({
     where: { id },
     include: {
@@ -85,6 +92,7 @@ export const getAnnouncementById = async (
   });
 
   if (!announcement) {
+    logger.debug({ announcementId: id }, "Announcement not found");
     throw createHttpError(404, "Announcement not found");
   }
 
@@ -97,6 +105,8 @@ export const createAnnouncement = async (
 ) => {
   const userId = Number(req.user!.sub);
   const { title, description, price, category } = req.body;
+
+  logger.debug({ userId, title, category, price }, "Create announcement attempt");
 
   const announcement = await prisma.announcement.create({
     data: {
@@ -138,15 +148,22 @@ export const updateAnnouncement = async (
   const { id } = req.params;
   const userId = Number(req.user!.sub);
 
+  logger.debug({ announcementId: id, userId }, "Update announcement attempt");
+
   const announcement = await prisma.announcement.findUnique({
     where: { id },
   });
 
   if (!announcement) {
+    logger.debug({ announcementId: id }, "Update failed: announcement not found");
     throw createHttpError(404, "Announcement not found");
   }
 
   if (announcement.userId !== userId) {
+    logger.debug(
+      { announcementId: id, userId, ownerId: announcement.userId },
+      "Update failed: access denied",
+    );
     throw createHttpError(403, "Access denied");
   }
 
@@ -180,15 +197,22 @@ export const deleteAnnouncement = async (
   const { id } = req.params;
   const userId = Number(req.user!.sub);
 
+  logger.debug({ announcementId: id, userId }, "Delete announcement attempt");
+
   const announcement = await prisma.announcement.findUnique({
     where: { id },
   });
 
   if (!announcement) {
+    logger.debug({ announcementId: id }, "Delete failed: announcement not found");
     throw createHttpError(404, "Announcement not found");
   }
 
   if (announcement.userId !== userId) {
+    logger.debug(
+      { announcementId: id, userId, ownerId: announcement.userId },
+      "Delete failed: access denied",
+    );
     throw createHttpError(403, "Access denied");
   }
 
