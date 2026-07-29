@@ -5,6 +5,9 @@ import cors from 'cors'
 import helmet from 'helmet'
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
+import { pinoHttp } from 'pino-http'
+import logger from "./src/logger.ts"
+
 
 import authRouter from "./src/routes/auth.routes.ts";
 import announcementsRouter from "./src/routes/announcements.routes.ts";
@@ -48,6 +51,31 @@ app.use(
 app.use(
   helmet({
     contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+  }),
+);
+
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => req.url === "/health",
+    },
+    serializers: {
+      req: (req) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url,
+      }),
+    },
+    redact: {
+      paths: [
+        "req.headers.authorization",
+        "req.headers.cookie",
+        "req.headers['set-cookie']",
+        'res.headers["set-cookie"]',
+      ],
+      remove: true,
+    },
   }),
 );
 
