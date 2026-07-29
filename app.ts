@@ -65,6 +65,9 @@ app.use(
         method: req.method,
         url: req.url,
       }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
     },
     redact: {
       paths: [
@@ -77,6 +80,7 @@ app.use(
     },
   }),
 );
+
 
 app.use(express.json());
 app.use(cookieParser());

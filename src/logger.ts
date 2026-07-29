@@ -5,6 +5,7 @@ const isDev = process.env.NODE_ENV !== "production";
 
 const logger = pino({
   level: isDev ? "debug" : "info",
+  base: isDev ? undefined : { pid: undefined, hostname: undefined }, // remove pid, hostname
 
   redact: {
     paths: [
