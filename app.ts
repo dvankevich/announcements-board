@@ -101,7 +101,7 @@ app.use((req: Request, res: Response) => {
 
 // Error handling middleware
 app.use(async (err: any, req: Request, res: Response, _next: NextFunction) => {
-  // remove temporary upload file if exists
+  // Always try to delete temporary uploaded file
   if (req.file?.path) {
     await fs.unlink(req.file.path).catch(() => {});
   }
@@ -140,6 +140,13 @@ app.use(async (err: any, req: Request, res: Response, _next: NextFunction) => {
       details: {
         body: ["Invalid JSON format in request body"],
       },
+    });
+  }
+
+  if (status === 422 && err.details) {
+    return res.status(422).json({
+      error: err.message,
+      details: err.details,
     });
   }
 

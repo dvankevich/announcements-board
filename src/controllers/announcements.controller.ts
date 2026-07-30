@@ -13,23 +13,24 @@ import cloudinary from "../config/cloudinary.ts";
 
 function getPublicIdFromUrl(url: string): string | null {
   try {
-    // URL example:
+    // Example URL:
     // https://res.cloudinary.com/dvc0lg6q7/image/upload/v1722345678/announcements/abc123.jpg
     const parts = url.split("/");
     const uploadIndex = parts.findIndex((part) => part === "upload");
 
     if (uploadIndex === -1) return null;
 
-    // Беремо все після "upload"
+    // Take everything after "upload"
     let pathParts = parts.slice(uploadIndex + 1);
 
-    // Прибираємо версію (v1234567890), якщо вона є
+    // Remove version segment (v1234567890) if present
     if (pathParts[0]?.startsWith("v") && /^v\d+$/.test(pathParts[0])) {
       pathParts = pathParts.slice(1);
     }
 
     const publicIdWithExtension = pathParts.join("/");
-    // Прибираємо розширення (.jpg, .png тощо)
+
+    // Remove file extension (.jpg, .png, etc.)
     return publicIdWithExtension.replace(/\.[^/.]+$/, "");
   } catch {
     return null;
@@ -41,7 +42,6 @@ export const getAnnouncements = async (
   res: Response<any, { query: GetAnnouncementsQuery }>,
 ) => {
   const { page, search, sort } = res.locals.query;
-
   logger.debug({ page, search, sort }, "Get announcements list");
 
   const perPage = 10;
@@ -101,7 +101,6 @@ export const getAnnouncementById = async (
   res: Response,
 ) => {
   const { id } = req.params;
-
   logger.debug({ announcementId: id }, "Get announcement by id");
 
   const announcement = await prisma.announcement.findUnique({
@@ -147,7 +146,7 @@ export const createAnnouncement = async (
       logger.error(error, "Cloudinary upload failed");
       throw createHttpError(500, "Failed to upload image");
     } finally {
-      // remove temp image file
+      // Remove temporary file
       await fs.unlink(req.file.path).catch(() => {});
     }
   }
@@ -251,7 +250,7 @@ export const updateAnnouncement = async (
         "New image uploaded successfully",
       );
 
-      // Видаляємо старе зображення
+      // Delete old image from Cloudinary
       if (announcement.imageUrl) {
         const oldPublicId = getPublicIdFromUrl(announcement.imageUrl);
 
@@ -265,11 +264,7 @@ export const updateAnnouncement = async (
 
         if (oldPublicId) {
           const destroyResult = await cloudinary.uploader.destroy(oldPublicId);
-
-          logger.debug(
-            { oldPublicId, destroyResult },
-            "Cloudinary destroy result",
-          );
+          logger.debug({ oldPublicId, destroyResult }, "Cloudinary destroy result");
         } else {
           logger.warn(
             { oldImageUrl: announcement.imageUrl },
@@ -344,6 +339,7 @@ export const deleteAnnouncement = async (
     throw createHttpError(403, "Access denied");
   }
 
+  // Delete image from Cloudinary if exists
   if (announcement.imageUrl) {
     try {
       const publicId = getPublicIdFromUrl(announcement.imageUrl);
@@ -364,4 +360,3 @@ export const deleteAnnouncement = async (
 
   res.status(204).end();
 };
-
