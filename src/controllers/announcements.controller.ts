@@ -194,6 +194,14 @@ export const updateAnnouncement = async (
   const { id } = req.params;
   const userId = Number(req.user!.sub);
 
+  const hasBodyFields = Object.values(req.body).some(
+    (value) => value !== undefined && value !== "",
+  );
+
+  if (!hasBodyFields && !req.file) {
+    throw createHttpError(422, "At least one field must be provided");
+  }
+
   logger.debug({ announcementId: id, userId }, "Update announcement attempt");
 
   const announcement = await prisma.announcement.findUnique({
@@ -215,17 +223,75 @@ export const updateAnnouncement = async (
 
   let imageUrl = announcement.imageUrl;
 
+  logger.debug(
+    {
+      hasFile: !!req.file,
+      filePath: req.file?.path,
+      fileOriginalName: req.file?.originalname,
+      oldImageUrl: announcement.imageUrl,
+    },
+    "Image upload check",
+  );
+
   if (req.file) {
     try {
+      logger.debug({ path: req.file.path }, "Uploading new image to Cloudinary");
+
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "announcements",
       });
+
       imageUrl = result.secure_url;
+
+      logger.debug(
+        {
+          newImageUrl: result.secure_url,
+          newPublicId: result.public_id,
+        },
+        "New image uploaded successfully",
+      );
+
+      // Видаляємо старе зображення
+      if (announcement.imageUrl) {
+        const oldPublicId = getPublicIdFromUrl(announcement.imageUrl);
+
+        logger.debug(
+          {
+            oldImageUrl: announcement.imageUrl,
+            extractedPublicId: oldPublicId,
+          },
+          "Trying to delete old image from Cloudinary",
+        );
+
+        if (oldPublicId) {
+          const destroyResult = await cloudinary.uploader.destroy(oldPublicId);
+
+          logger.debug(
+            { oldPublicId, destroyResult },
+            "Cloudinary destroy result",
+          );
+        } else {
+          logger.warn(
+            { oldImageUrl: announcement.imageUrl },
+            "Could not extract public_id from old image URL",
+          );
+        }
+      }
     } catch (error) {
       logger.error(error, "Cloudinary upload failed");
       throw createHttpError(500, "Failed to upload image");
     } finally {
-      await fs.unlink(req.file.path).catch(() => {});
+      if (req.file?.path) {
+        try {
+          await fs.unlink(req.file.path);
+          logger.debug({ path: req.file.path }, "Temporary file deleted successfully");
+        } catch (unlinkError) {
+          logger.error(
+            { path: req.file.path, err: unlinkError },
+            "Failed to delete temporary file",
+          );
+        }
+      }
     }
   }
 
