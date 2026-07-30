@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs/promises";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
@@ -99,7 +100,12 @@ app.use((req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+app.use(async (err: any, req: Request, res: Response, _next: NextFunction) => {
+  // remove temporary upload file if exists
+  if (req.file?.path) {
+    await fs.unlink(req.file.path).catch(() => {});
+  }
+
   const status = err.status || err.statusCode || 500;
 
   if (status >= 500) {

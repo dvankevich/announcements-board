@@ -122,7 +122,7 @@ export const createAnnouncement = async (
       logger.error(error, "Cloudinary upload failed");
       throw createHttpError(500, "Failed to upload image");
     } finally {
-      // Видаляємо тимчасовий файл
+      // remove temp image file
       await fs.unlink(req.file.path).catch(() => {});
     }
   }
