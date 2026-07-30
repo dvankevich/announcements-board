@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:3000
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "olena",
+  "password": "securepass123"
+}
+
+### Save tokens after login
+@accessToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+
+### Refresh tokens
+# @name refresh
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Update tokens after refresh
+@accessToken = {{refresh.response.body.accessToken}}
+@refreshToken = {{refresh.response.body.refreshToken}}
+
+### ============================================
+### Update announcement WITH image (PATCH)
+### ============================================
+PATCH {{baseUrl}}/api/announcements/5
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="title"
+
+Selling ASUS laptop (urgent)
+------Boundary
+Content-Disposition: form-data; name="price"
+
+16500
+------Boundary
+Content-Disposition: form-data; name="image"; filename="image01.jpg"
+Content-Type: image/jpeg
+
+< ./image01.jpg
+------Boundary--

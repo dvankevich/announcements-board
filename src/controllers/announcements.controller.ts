@@ -8,6 +8,8 @@ import type {
   UpdateAnnouncementBody,
 } from "../validators/announcements.validator.ts";
 import logger from "../logger.ts";
+import fs from "fs/promises";
+import cloudinary from "../config/cloudinary.ts";
 
 export const getAnnouncements = async (
   _req: Request,
@@ -108,12 +110,30 @@ export const createAnnouncement = async (
 
   logger.debug({ userId, title, category, price }, "Create announcement attempt");
 
+  let imageUrl: string | undefined;
+
+  if (req.file) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "announcements",
+      });
+      imageUrl = result.secure_url;
+    } catch (error) {
+      logger.error(error, "Cloudinary upload failed");
+      throw createHttpError(500, "Failed to upload image");
+    } finally {
+      // Видаляємо тимчасовий файл
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+  }
+
   const announcement = await prisma.announcement.create({
     data: {
       title,
       description,
       price,
       category,
+      imageUrl,
       userId,
     },
     include: {
@@ -134,6 +154,7 @@ export const createAnnouncement = async (
       userId,
       title: announcement.title,
       category: announcement.category,
+      hasImage: !!imageUrl,
     },
     "Announcement created",
   );
@@ -167,9 +188,28 @@ export const updateAnnouncement = async (
     throw createHttpError(403, "Access denied");
   }
 
+  let imageUrl = announcement.imageUrl;
+
+  if (req.file) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "announcements",
+      });
+      imageUrl = result.secure_url;
+    } catch (error) {
+      logger.error(error, "Cloudinary upload failed");
+      throw createHttpError(500, "Failed to upload image");
+    } finally {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+  }
+
   const updated = await prisma.announcement.update({
     where: { id },
-    data: req.body,
+    data: {
+      ...req.body,
+      imageUrl,
+    },
     include: {
       user: {
         select: {
@@ -182,10 +222,7 @@ export const updateAnnouncement = async (
     },
   });
 
-  logger.info(
-    { announcementId: id, userId },
-    "Announcement updated",
-  );
+  logger.info({ announcementId: id, userId }, "Announcement updated");
 
   res.status(200).json(updated);
 };

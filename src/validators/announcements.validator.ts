@@ -108,9 +108,7 @@ export const CreateAnnouncementSchema = registry.register(
       .string()
       .min(10)
       .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
-    price: z
-      .number()
-      .positive()
+    price: z.coerce.number().int().positive()
       .openapi({ example: 8000 }),
     category: z
       .enum(["sale", "service", "job", "other"])
@@ -135,10 +133,7 @@ export const UpdateAnnouncementSchema = registry.register(
         .min(10)
         .optional()
         .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
-      price: z
-        .number()
-        .positive()
-        .optional()
+      price: z.coerce.number().int().positive()
         .openapi({ example: 6500 }),
       category: z
         .enum(["sale", "service", "job", "other"])

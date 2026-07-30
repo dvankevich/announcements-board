@@ -6,8 +6,13 @@ import {
   updateAnnouncement,
   deleteAnnouncement,
 } from "../controllers/announcements.controller.ts";
-import { validateQuery, validateParams, validateBody } from "../middleware/validate.ts";
-import authenticate  from "../middleware/authenticate.ts";
+import {
+  validateQuery,
+  validateParams,
+  validateBody,
+} from "../middleware/validate.ts";
+import authenticate from "../middleware/authenticate.ts";
+import { upload } from "../middleware/upload.ts";
 import {
   GetAnnouncementsQuerySchema,
   AnnouncementIdParamSchema,
@@ -32,7 +37,8 @@ router.get(
 router.post(
   "/",
   authenticate,
-  validateBody(CreateAnnouncementSchema),
+  upload.single("image"),                    // ← спочатку multer
+  validateBody(CreateAnnouncementSchema),    // ← потім валідація текстових полів
   createAnnouncement,
 );
 
@@ -40,6 +46,7 @@ router.patch(
   "/:id",
   authenticate,
   validateParams(AnnouncementIdParamSchema),
+  upload.single("image") as any,                    // ← спочатку multer
   validateBody(UpdateAnnouncementSchema),
   updateAnnouncement,
 );
@@ -50,6 +57,5 @@ router.delete(
   validateParams(AnnouncementIdParamSchema),
   deleteAnnouncement,
 );
-
 
 export default router;
