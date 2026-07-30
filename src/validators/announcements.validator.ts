@@ -23,6 +23,15 @@ export const AnnouncementSchema = registry.register(
       .openapi({ example: "Excellent condition, 16GB RAM" }),
     price: z.number().int().openapi({ example: 18000 }),
     category: z.string().openapi({ example: "sale" }),
+    imageUrl: z
+      .string()
+      .url()
+      .nullable()
+      .optional()
+      .openapi({
+        example:
+          "https://res.cloudinary.com/demo/image/upload/v1/announcements/abc123.jpg",
+      }),
     createdAt: z
       .iso.datetime()
       .openapi({ example: "2025-01-10T12:00:00.000Z" }),
@@ -108,11 +117,22 @@ export const CreateAnnouncementSchema = registry.register(
       .string()
       .min(10)
       .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
-    price: z.coerce.number().int().positive()
+    price: z.coerce
+      .number()
+      .int()
+      .positive()
       .openapi({ example: 8000 }),
     category: z
       .enum(["sale", "service", "job", "other"])
       .openapi({ example: "sale" }),
+    image: z
+      .string()
+      .optional()
+      .openapi({
+        type: "string",
+        format: "binary",
+        description: "Announcement image (optional)",
+      }),
   }),
 );
 
@@ -122,27 +142,57 @@ export const UpdateAnnouncementSchema = registry.register(
   "UpdateAnnouncement",
   z
     .object({
-      title: z
+      title: z.preprocess(
+        (val) => (val === "" || val === null || val === undefined ? undefined : val),
+        z
+          .string()
+          .min(5)
+          .max(50)
+          .optional()
+          .openapi({ example: "Selling a mountain bike urgently" }),
+      ),
+      description: z.preprocess(
+        (val) => (val === "" || val === null || val === undefined ? undefined : val),
+        z
+          .string()
+          .min(10)
+          .optional()
+          .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
+      ),
+      price: z.preprocess(
+        (val) => (val === "" || val === null || val === undefined ? undefined : val),
+        z.coerce
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .openapi({ example: 6500 }),
+      ),
+      category: z.preprocess(
+        (val) => (val === "" || val === null || val === undefined ? undefined : val),
+        z
+          .enum(["sale", "service", "job", "other"])
+          .optional()
+          .openapi({ example: "sale" }),
+      ),
+      image: z
         .string()
-        .min(5)
-        .max(50)
         .optional()
-        .openapi({ example: "Selling a mountain bike urgently" }),
-      description: z
-        .string()
-        .min(10)
-        .optional()
-        .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
-      price: z.coerce.number().int().positive()
-        .openapi({ example: 6500 }),
-      category: z
-        .enum(["sale", "service", "job", "other"])
-        .optional()
-        .openapi({ example: "sale" }),
+        .openapi({
+          type: "string",
+          format: "binary",
+          description: "New announcement image (optional)",
+        }),
     })
-    .refine((data) => Object.keys(data).length > 0, {
-      message: "At least one field must be provided",
-    }),
+    .refine(
+      (data) => {
+        // Перевіряємо, що є хоча б одне реальне поле (не undefined)
+        return Object.values(data).some((value) => value !== undefined);
+      },
+      {
+        message: "At least one field must be provided",
+      },
+    ),
 );
 
 export type UpdateAnnouncementBody = z.infer<typeof UpdateAnnouncementSchema>;
@@ -197,12 +247,14 @@ registry.registerPath({
   tags: ["Announcements"],
   summary: "Create a new announcement",
   description:
-    "Protected route. Creates an announcement. Author is taken from the access token.",
+    "Protected route. Creates an announcement. Author is taken from the access token. Supports optional image upload.",
   security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
-        "application/json": { schema: CreateAnnouncementSchema },
+        "multipart/form-data": {
+          schema: CreateAnnouncementSchema,
+        },
       },
     },
   },
@@ -224,13 +276,15 @@ registry.registerPath({
   tags: ["Announcements"],
   summary: "Update announcement",
   description:
-    "Protected route. Partially updates an announcement. Only the owner can update it.",
+    "Protected route. Partially updates an announcement. Only the owner can update it. Supports optional image upload.",
   security: [{ bearerAuth: [] }],
   request: {
     params: AnnouncementIdParamSchema,
     body: {
       content: {
-        "application/json": { schema: UpdateAnnouncementSchema },
+        "multipart/form-data": {
+          schema: UpdateAnnouncementSchema,
+        },
       },
     },
   },
