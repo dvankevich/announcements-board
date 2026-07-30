@@ -11,6 +11,31 @@ import logger from "../logger.ts";
 import fs from "fs/promises";
 import cloudinary from "../config/cloudinary.ts";
 
+function getPublicIdFromUrl(url: string): string | null {
+  try {
+    // URL example:
+    // https://res.cloudinary.com/dvc0lg6q7/image/upload/v1722345678/announcements/abc123.jpg
+    const parts = url.split("/");
+    const uploadIndex = parts.findIndex((part) => part === "upload");
+
+    if (uploadIndex === -1) return null;
+
+    // Беремо все після "upload"
+    let pathParts = parts.slice(uploadIndex + 1);
+
+    // Прибираємо версію (v1234567890), якщо вона є
+    if (pathParts[0]?.startsWith("v") && /^v\d+$/.test(pathParts[0])) {
+      pathParts = pathParts.slice(1);
+    }
+
+    const publicIdWithExtension = pathParts.join("/");
+    // Прибираємо розширення (.jpg, .png тощо)
+    return publicIdWithExtension.replace(/\.[^/.]+$/, "");
+  } catch {
+    return null;
+  }
+}
+
 export const getAnnouncements = async (
   _req: Request,
   res: Response<any, { query: GetAnnouncementsQuery }>,
@@ -253,14 +278,24 @@ export const deleteAnnouncement = async (
     throw createHttpError(403, "Access denied");
   }
 
+  if (announcement.imageUrl) {
+    try {
+      const publicId = getPublicIdFromUrl(announcement.imageUrl);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+        logger.debug({ publicId }, "Image deleted from Cloudinary");
+      }
+    } catch (error) {
+      logger.error(error, "Failed to delete image from Cloudinary");
+    }
+  }
+
   await prisma.announcement.delete({
     where: { id },
   });
 
-  logger.info(
-    { announcementId: id, userId },
-    "Announcement deleted",
-  );
+  logger.info({ announcementId: id, userId }, "Announcement deleted");
 
   res.status(204).end();
 };
+
