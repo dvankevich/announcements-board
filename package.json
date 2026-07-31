@@ -10,7 +10,10 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "npm run test:unit && npm run test:integration",
     "test:integration:watch": "vitest --config vitest.integration.config.ts",
-    "prisma:migrate:test": "dotenv -e .env -- sh -c 'DATABASE_URL=$TEST_DATABASE_URL npx prisma migrate deploy'"
+    "prisma:migrate:test": "dotenv -e .env -- sh -c 'DATABASE_URL=$TEST_DATABASE_URL npx prisma migrate deploy'",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report"
   },
   "keywords": [],
   "author": "",
@@ -38,6 +41,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
