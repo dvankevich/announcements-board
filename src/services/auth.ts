@@ -2,10 +2,16 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import type { Response } from "express";
 import prisma from "../../prisma/client.ts";
+import bcrypt from "bcrypt";
 import {
   ACCESS_TOKEN_LIFETIME,
   REFRESH_TOKEN_LIFETIME,
 } from "../constants/time.ts";
+
+export const hashPassword = (password: string) => bcrypt.hash(password, 10);
+
+export const verifyPassword = (password: string, hash: string) =>
+  bcrypt.compare(password, hash);
 
 export const createTokens = async (userId: number) => {
   const accessToken = jwt.sign(

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import createHttpError from "http-errors";
 import type { Request, Response } from "express";
 import prisma from "../../prisma/client.ts";
-import { createTokens, setRefreshTokenCookie } from "../services/auth.ts";
+import { createTokens, setRefreshTokenCookie, hashPassword, verifyPassword} from "../services/auth.ts";
 import type { RegisterBody, LoginBody } from "../validators/auth.validator.ts";
 import logger from "../logger.ts";
 
@@ -25,7 +25,7 @@ export const register = async (
     throw createHttpError(409, "Username or email already taken");
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await hashPassword(password);
 
   const user = await prisma.user.create({
     data: {
@@ -70,7 +70,7 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
     throw createHttpError(401, "Invalid credentials");
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await verifyPassword(password, user.password);
 
   if (!isPasswordValid) {
     logger.debug({ userId: user.id, username }, "Login failed: invalid password");
