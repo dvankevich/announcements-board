@@ -19,8 +19,8 @@ export const RegisterSchema = registry.register(
 export const LoginSchema = registry.register(
   "Login",
   z.object({
-    username: z.string().openapi({ example: "user01" }),
-    password: z.string().openapi({ example: "securepass123" }),
+    username: z.string().min(1).openapi({ example: "user01" }),
+    password: z.string().min(1).openapi({ example: "securepass123" }),
   }),
 );
 
