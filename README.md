@@ -102,3 +102,68 @@ npx prisma migrate status
 > **Примітка:**  
 > Якщо змінюєш `schema.prisma` (додаєш/видаляєш поля), завжди роби нову міграцію через `migrate dev`.  
 > `migrate reset` повністю очищає базу — використовуй тільки в dev.
+
+
+## Тести
+
+Проєкт має два рівні тестів:
+
+| Тип | Що перевіряє | БД |
+|-----|----------------|----|
+| **Unit** | Zod-схеми валідації, сервіси (`createTokens`, хешування паролів) | Не використовує |
+| **Integration** | Повний HTTP-флоу через `supertest` + реальна тестова БД | `TEST_DATABASE_URL` |
+
+### Структура
+
+```
+tests/
+├── setup.ts                          # підміна DATABASE_URL → TEST_DATABASE_URL
+├── globalSetup.ts                    # міграції тестової БД (лише для integration)
+├── validators/
+│   ├── auth.validator.test.ts
+│   └── announcements.validator.test.ts
+├── services/
+│   └── auth.test.ts
+└── integration/
+    └── auth.test.ts
+```
+
+### Змінні оточення
+
+У `.env` обов’язково має бути:
+
+```env
+TEST_DATABASE_URL="postgresql://user:password@localhost:5432/announcements_test"
+```
+
+Тестова БД має існувати (або буде створена під час `migrate deploy`).
+
+### Команди
+
+```bash
+# Тільки unit-тести (швидко, без БД)
+npm run test:unit
+
+# Тільки integration-тести (автоматично ганяє міграції на TEST_DATABASE_URL)
+npm run test:integration
+
+# Усі тести підряд
+npm run test:all
+
+# Integration у watch-режимі
+npm run test:integration:watch
+
+# Лише міграції тестової БД (вручну)
+npm run prisma:migrate:test
+```
+
+### Як працюють integration-тести
+
+1. `vitest.integration.config.ts` підключає `globalSetup` і `setupFiles`
+2. `globalSetup` виконує `prisma migrate deploy` на `TEST_DATABASE_URL`
+3. `setup.ts` підміняє `process.env.DATABASE_URL` **до** імпорту Prisma/app
+4. Кожен тест очищає таблиці в `beforeEach`
+5. Після всіх тестів — `prisma.$disconnect()`
+
+> **Важливо:** unit-тести **не** чіпають тестову БД і не запускають міграції.
+
