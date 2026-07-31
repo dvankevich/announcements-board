@@ -3,7 +3,8 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "dev": "tsx --watch app.ts",
+    "dev": "tsx watch index.ts",
+    "start": "node --import tsx index.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
