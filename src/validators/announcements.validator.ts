@@ -140,49 +140,65 @@ export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementSchema>;
 
 export const UpdateAnnouncementSchema = registry.register(
   "UpdateAnnouncement",
-  z.object({
-    title: z.preprocess(
-      (val) => (val === "" || val === null || val === undefined ? undefined : val),
-      z
+  z
+    .object({
+      title: z.preprocess(
+        (val) =>
+          val === "" || val === null || val === undefined ? undefined : val,
+        z
+          .string()
+          .min(5)
+          .max(50)
+          .optional()
+          .openapi({ example: "Selling a mountain bike urgently" }),
+      ),
+      description: z.preprocess(
+        (val) =>
+          val === "" || val === null || val === undefined ? undefined : val,
+        z
+          .string()
+          .min(10)
+          .optional()
+          .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
+      ),
+      price: z.preprocess(
+        (val) =>
+          val === "" || val === null || val === undefined ? undefined : val,
+        z.coerce
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .openapi({ example: 6500 }),
+      ),
+      category: z.preprocess(
+        (val) =>
+          val === "" || val === null || val === undefined ? undefined : val,
+        z
+          .enum(["sale", "service", "job", "other"])
+          .optional()
+          .openapi({ example: "sale" }),
+      ),
+      image: z
         .string()
-        .min(5)
-        .max(50)
         .optional()
-        .openapi({ example: "Selling a mountain bike urgently" }),
+        .openapi({
+          type: "string",
+          format: "binary",
+          description: "New announcement image (optional)",
+        }),
+    })
+    .refine(
+      (data) =>
+        data.title !== undefined ||
+        data.description !== undefined ||
+        data.price !== undefined ||
+        data.category !== undefined ||
+        data.image !== undefined,
+      {
+        message: "At least one field must be provided",
+      },
     ),
-    description: z.preprocess(
-      (val) => (val === "" || val === null || val === undefined ? undefined : val),
-      z
-        .string()
-        .min(10)
-        .optional()
-        .openapi({ example: "Mountain bike, 21 speeds, good condition" }),
-    ),
-    price: z.preprocess(
-      (val) => (val === "" || val === null || val === undefined ? undefined : val),
-      z.coerce
-        .number()
-        .int()
-        .positive()
-        .optional()
-        .openapi({ example: 6500 }),
-    ),
-    category: z.preprocess(
-      (val) => (val === "" || val === null || val === undefined ? undefined : val),
-      z
-        .enum(["sale", "service", "job", "other"])
-        .optional()
-        .openapi({ example: "sale" }),
-    ),
-    image: z
-      .string()
-      .optional()
-      .openapi({
-        type: "string",
-        format: "binary",
-        description: "New announcement image (optional)",
-      }),
-  }),
 );
 
 export type UpdateAnnouncementBody = z.infer<typeof UpdateAnnouncementSchema>;
