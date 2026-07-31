@@ -148,5 +148,11 @@ vite.config.ts.timestamp-*
 /prisma/generated/prisma
 generated/
 # remove this two lines
-# migrations/
-# migrations/migration_lock.toml
+migrations/
+migrations/migration_lock.toml
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
