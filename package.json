@@ -1,7 +1,7 @@
 {
   "name": "announcements-board",
   "description": "",
-  "main": "app.ts",
+  "main": "index.ts",
   "scripts": {
     "dev": "tsx watch index.ts",
     "start": "node --import tsx index.ts",

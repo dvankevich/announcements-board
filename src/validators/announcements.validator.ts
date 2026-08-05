@@ -123,7 +123,7 @@ export const CreateAnnouncementSchema = registry.register(
       .positive()
       .openapi({ example: 8000 }),
     category: z
-      .enum(["sale", "service", "job", "other"])
+      .enum(["sale", "service", "job", "other", "buy", "rent"])
       .openapi({ example: "sale" }),
     image: z
       .string()
