@@ -85,6 +85,8 @@ export const getAnnouncements = async (
 
   logger.debug({ total, page, totalPages }, "Announcements list fetched");
 
+  res.set("X-Total-Count", String(total));
+
   res.status(200).json({
     data,
     pagination: {
