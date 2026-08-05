@@ -226,13 +226,13 @@ describe("CreateAnnouncementSchema", () => {
     expect(
       CreateAnnouncementSchema.safeParse({
         ...valid,
-        category: "rent",
+        category: "exchange",
       }).success,
     ).toBe(false);
   });
 
   it("should accept all allowed categories", () => {
-    for (const category of ["sale", "service", "job", "other"]) {
+    for (const category of ["sale", "service", "job", "other", "buy", "rent"]) {
       expect(
         CreateAnnouncementSchema.safeParse({ ...valid, category }).success,
       ).toBe(true);

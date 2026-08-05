@@ -13,6 +13,9 @@ export const hashPassword = (password: string) => bcrypt.hash(password, 10);
 export const verifyPassword = (password: string, hash: string) =>
   bcrypt.compare(password, hash);
 
+export const hashToken = (token: string): string =>
+  crypto.createHash("sha256").update(token).digest("hex");
+
 export const createTokens = async (userId: number) => {
   const accessToken = jwt.sign(
     { sub: String(userId) },
@@ -25,7 +28,7 @@ export const createTokens = async (userId: number) => {
   await prisma.refreshToken.create({
     data: {
       userId,
-      token: refreshToken,
+      token: hashToken(refreshToken),
       expiresAt: new Date(Date.now() + REFRESH_TOKEN_LIFETIME),
     },
   });

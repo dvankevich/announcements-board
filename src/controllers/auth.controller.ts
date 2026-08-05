@@ -2,7 +2,13 @@ import bcrypt from "bcrypt";
 import createHttpError from "http-errors";
 import type { Request, Response } from "express";
 import prisma from "../../prisma/client.ts";
-import { createTokens, setRefreshTokenCookie, hashPassword, verifyPassword} from "../services/auth.ts";
+import {
+  createTokens,
+  setRefreshTokenCookie,
+  hashPassword,
+  verifyPassword,
+  hashToken,
+} from "../services/auth.ts";
 import type { RegisterBody, LoginBody } from "../validators/auth.validator.ts";
 import logger from "../logger.ts";
 
@@ -108,8 +114,10 @@ export const refresh = async (req: Request, res: Response) => {
     throw createHttpError(401, "Refresh token not provided");
   }
 
+  const tokenHash = hashToken(refreshToken);
+
   const storedToken = await prisma.refreshToken.findFirst({
-    where: { token: refreshToken },
+    where: { token: tokenHash },
   });
 
   if (!storedToken) {
@@ -146,8 +154,9 @@ export const logout = async (req: Request, res: Response) => {
   logger.debug("Logout attempt");
 
   if (refreshToken) {
+    const tokenHash = hashToken(refreshToken);
     await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
+      where: { token: tokenHash },
     });
   }
 

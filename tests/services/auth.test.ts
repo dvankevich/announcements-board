@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import prisma from "../../prisma/client.ts";
-import { createTokens, setRefreshTokenCookie, hashPassword, verifyPassword } from "../../src/services/auth.ts";
+import { createTokens, setRefreshTokenCookie, hashPassword, verifyPassword, hashToken } from "../../src/services/auth.ts";
 import { REFRESH_TOKEN_LIFETIME } from "../../src/constants/time.ts";
 
 // Mock Prisma
@@ -68,7 +68,8 @@ describe("createTokens", () => {
     const callArg = mockCreate.mock.calls[0][0].data;
 
     expect(callArg.userId).toBe(userId);
-    expect(callArg.token).toBe(refreshToken);
+    // Було: expect(callArg.token).toBe(refreshToken);
+    expect(callArg.token).toBe(hashToken(refreshToken));   // ← виправлено
     expect(callArg.expiresAt).toBeInstanceOf(Date);
 
     const expiresAt = (callArg.expiresAt as Date).getTime();
