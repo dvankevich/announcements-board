@@ -11,6 +11,7 @@ import logger from "./src/logger.ts";
 import authRouter from "./src/routes/auth.routes.ts";
 import announcementsRouter from "./src/routes/announcements.routes.ts";
 import { generateOpenApiDocument } from "./src/openapi.ts";
+import prisma from "./prisma/client.ts";
 
 const app = express();
 
@@ -85,6 +86,27 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
+// ---------- Health checks  ----------
+
+// Liveness — процес живий, Event Loop відповідає
+app.get("/healthz", (_req: Request, res: Response) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+  });
+});
+
+// Readiness — готовий приймати трафік (перевіряємо БД)
+app.get("/readyz", async (_req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: "ready" });
+  } catch (err) {
+    logger.warn({ err }, "Readiness check failed");
+    res.status(503).json({ status: "not ready" });
+  }
+});
 
 const openApiDocument = generateOpenApiDocument();
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
